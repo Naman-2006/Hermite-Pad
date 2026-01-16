@@ -91,8 +91,6 @@
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <InkCanvas x:Name="MainInkCanvas" 
                                Background="White"
-                               Width="2000" 
-                               Height="2000"
                                MinWidth="800"
                                MinHeight="600"/>
                 </ScrollViewer>

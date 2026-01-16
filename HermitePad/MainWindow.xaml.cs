@@ -50,6 +50,10 @@ namespace HermitePad
             
             MainInkCanvas.DefaultDrawingAttributes = drawingAttributes;
             MainInkCanvas.EditingMode = InkCanvasEditingMode.Ink;
+            
+            // Initialize canvas size
+            MainInkCanvas.Width = 1200;
+            MainInkCanvas.Height = 800;
         }
 
         private void SetupEventHandlers()
@@ -67,6 +71,40 @@ namespace HermitePad
             
             // Keyboard shortcuts
             this.KeyDown += OnKeyDown;
+            
+            // Canvas expansion
+            MainInkCanvas.StylusDown += OnCanvasInteraction;
+            MainInkCanvas.MouseDown += OnCanvasInteraction;
+        }
+
+        private void OnCanvasInteraction(object sender, EventArgs e)
+        {
+            ExpandCanvasIfNeeded();
+        }
+
+        private void ExpandCanvasIfNeeded()
+        {
+            // Get all strokes bounds
+            if (MainInkCanvas.Strokes.Count > 0)
+            {
+                var bounds = MainInkCanvas.Strokes.GetBounds();
+                
+                // Add padding
+                double padding = 200;
+                double requiredWidth = bounds.Right + padding;
+                double requiredHeight = bounds.Bottom + padding;
+                
+                // Expand if needed
+                if (requiredWidth > MainInkCanvas.Width)
+                {
+                    MainInkCanvas.Width = requiredWidth;
+                }
+                
+                if (requiredHeight > MainInkCanvas.Height)
+                {
+                    MainInkCanvas.Height = requiredHeight;
+                }
+            }
         }
 
         private void OnStrokeCollected(object sender, InkCanvasStrokeCollectedEventArgs e)
@@ -228,7 +266,7 @@ namespace HermitePad
                     BezierButton.FontWeight = FontWeights.Bold;
                     MainInkCanvas.EditingMode = InkCanvasEditingMode.None;
                     _bezierTool = new BezierTool(MainInkCanvas);
-                    StatusText.Text = "Bezier: Click to add points, Right-click to finish";
+                    StatusText.Text = "Bezier: Click and drag to create curves, Right-click to finish";
                     break;
             }
             
