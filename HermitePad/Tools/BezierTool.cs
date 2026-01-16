@@ -16,12 +16,12 @@ namespace HermitePad.Tools
         private BezierNode? _selectedNode;
         private readonly List<UIElement> _visualElements;
         private readonly Path _previewPath;
-        private bool _isDraggingHandle = false;
         private bool _isCreatingNode = false;
         private Point _dragStartPoint;
-        private Ellipse? _dragHandleVisual;
         private Line? _handleLine1;
         private Line? _handleLine2;
+        private Ellipse? _handle1Visual;
+        private Ellipse? _handle2Visual;
 
         public BezierTool(InkCanvas inkCanvas)
         {
@@ -69,8 +69,8 @@ namespace HermitePad.Tools
                 lastNode.ControlPoint1 = _dragStartPoint - handleVector;
                 lastNode.ControlPoint2 = _dragStartPoint + handleVector;
                 
-                // Update visual handles
-                UpdateHandleVisuals(lastNode);
+                // Update visual handles efficiently (reuse existing visuals)
+                UpdateHandleVisualsEfficiently(lastNode);
                 UpdatePreviewPath();
             }
         }
@@ -92,13 +92,14 @@ namespace HermitePad.Tools
                     {
                         lastNode.ControlPoint1 = _dragStartPoint - handleVector;
                         lastNode.ControlPoint2 = _dragStartPoint + handleVector;
-                        UpdateHandleVisuals(lastNode);
+                        UpdateHandleVisualsEfficiently(lastNode);
                     }
                     else
                     {
                         // Small drag or click - create straight segment
                         lastNode.ControlPoint1 = null;
                         lastNode.ControlPoint2 = null;
+                        ClearHandleVisuals();
                     }
                     
                     UpdatePreviewPath();
@@ -124,80 +125,107 @@ namespace HermitePad.Tools
             _visualElements.Add(ellipse);
         }
 
-        private void UpdateHandleVisuals(BezierNode node)
+        private void UpdateHandleVisualsEfficiently(BezierNode node)
         {
-            // Remove old handle visuals
+            // Update existing visuals instead of recreating them
+            if (node.ControlPoint1.HasValue)
+            {
+                if (_handleLine1 == null)
+                {
+                    _handleLine1 = new Line
+                    {
+                        Stroke = Brushes.Gray,
+                        StrokeThickness = 1
+                    };
+                    _inkCanvas.Children.Add(_handleLine1);
+                    _visualElements.Add(_handleLine1);
+                }
+                
+                _handleLine1.X1 = node.Position.X;
+                _handleLine1.Y1 = node.Position.Y;
+                _handleLine1.X2 = node.ControlPoint1.Value.X;
+                _handleLine1.Y2 = node.ControlPoint1.Value.Y;
+
+                if (_handle1Visual == null)
+                {
+                    _handle1Visual = new Ellipse
+                    {
+                        Width = 6,
+                        Height = 6,
+                        Fill = Brushes.LightBlue,
+                        Stroke = Brushes.Gray,
+                        StrokeThickness = 1
+                    };
+                    _inkCanvas.Children.Add(_handle1Visual);
+                    _visualElements.Add(_handle1Visual);
+                }
+                
+                Canvas.SetLeft(_handle1Visual, node.ControlPoint1.Value.X - 3);
+                Canvas.SetTop(_handle1Visual, node.ControlPoint1.Value.Y - 3);
+            }
+
+            if (node.ControlPoint2.HasValue)
+            {
+                if (_handleLine2 == null)
+                {
+                    _handleLine2 = new Line
+                    {
+                        Stroke = Brushes.Gray,
+                        StrokeThickness = 1
+                    };
+                    _inkCanvas.Children.Add(_handleLine2);
+                    _visualElements.Add(_handleLine2);
+                }
+                
+                _handleLine2.X1 = node.Position.X;
+                _handleLine2.Y1 = node.Position.Y;
+                _handleLine2.X2 = node.ControlPoint2.Value.X;
+                _handleLine2.Y2 = node.ControlPoint2.Value.Y;
+
+                if (_handle2Visual == null)
+                {
+                    _handle2Visual = new Ellipse
+                    {
+                        Width = 6,
+                        Height = 6,
+                        Fill = Brushes.LightBlue,
+                        Stroke = Brushes.Gray,
+                        StrokeThickness = 1
+                    };
+                    _inkCanvas.Children.Add(_handle2Visual);
+                    _visualElements.Add(_handle2Visual);
+                }
+                
+                Canvas.SetLeft(_handle2Visual, node.ControlPoint2.Value.X - 3);
+                Canvas.SetTop(_handle2Visual, node.ControlPoint2.Value.Y - 3);
+            }
+        }
+
+        private void ClearHandleVisuals()
+        {
             if (_handleLine1 != null)
             {
                 _inkCanvas.Children.Remove(_handleLine1);
                 _visualElements.Remove(_handleLine1);
+                _handleLine1 = null;
             }
             if (_handleLine2 != null)
             {
                 _inkCanvas.Children.Remove(_handleLine2);
                 _visualElements.Remove(_handleLine2);
+                _handleLine2 = null;
             }
-            if (_dragHandleVisual != null)
+            if (_handle1Visual != null)
             {
-                _inkCanvas.Children.Remove(_dragHandleVisual);
-                _visualElements.Remove(_dragHandleVisual);
+                _inkCanvas.Children.Remove(_handle1Visual);
+                _visualElements.Remove(_handle1Visual);
+                _handle1Visual = null;
             }
-
-            // Add new handle visuals if control points exist
-            if (node.ControlPoint1.HasValue)
+            if (_handle2Visual != null)
             {
-                _handleLine1 = new Line
-                {
-                    X1 = node.Position.X,
-                    Y1 = node.Position.Y,
-                    X2 = node.ControlPoint1.Value.X,
-                    Y2 = node.ControlPoint1.Value.Y,
-                    Stroke = Brushes.Gray,
-                    StrokeThickness = 1
-                };
-                _inkCanvas.Children.Add(_handleLine1);
-                _visualElements.Add(_handleLine1);
-
-                var handle1 = new Ellipse
-                {
-                    Width = 6,
-                    Height = 6,
-                    Fill = Brushes.LightBlue,
-                    Stroke = Brushes.Gray,
-                    StrokeThickness = 1
-                };
-                Canvas.SetLeft(handle1, node.ControlPoint1.Value.X - 3);
-                Canvas.SetTop(handle1, node.ControlPoint1.Value.Y - 3);
-                _inkCanvas.Children.Add(handle1);
-                _visualElements.Add(handle1);
-            }
-
-            if (node.ControlPoint2.HasValue)
-            {
-                _handleLine2 = new Line
-                {
-                    X1 = node.Position.X,
-                    Y1 = node.Position.Y,
-                    X2 = node.ControlPoint2.Value.X,
-                    Y2 = node.ControlPoint2.Value.Y,
-                    Stroke = Brushes.Gray,
-                    StrokeThickness = 1
-                };
-                _inkCanvas.Children.Add(_handleLine2);
-                _visualElements.Add(_handleLine2);
-
-                var handle2 = new Ellipse
-                {
-                    Width = 6,
-                    Height = 6,
-                    Fill = Brushes.LightBlue,
-                    Stroke = Brushes.Gray,
-                    StrokeThickness = 1
-                };
-                Canvas.SetLeft(handle2, node.ControlPoint2.Value.X - 3);
-                Canvas.SetTop(handle2, node.ControlPoint2.Value.Y - 3);
-                _inkCanvas.Children.Add(handle2);
-                _visualElements.Add(handle2);
+                _inkCanvas.Children.Remove(_handle2Visual);
+                _visualElements.Remove(_handle2Visual);
+                _handle2Visual = null;
             }
         }
 
@@ -269,6 +297,7 @@ namespace HermitePad.Tools
         public void FinishPath()
         {
             _currentPath = new BezierPath();
+            ClearHandleVisuals();
         }
 
         public void ClearVisuals()
@@ -284,9 +313,7 @@ namespace HermitePad.Tools
                 _inkCanvas.Children.Remove(_previewPath);
             }
             
-            _handleLine1 = null;
-            _handleLine2 = null;
-            _dragHandleVisual = null;
+            ClearHandleVisuals();
         }
     }
 }

@@ -89,8 +89,30 @@ namespace HermitePad.Core
 
         public void SetActiveLayer(Layer layer)
         {
+            // Save current strokes to current layer
+            if (_activeLayer != null && _inkCanvas.Strokes.Count > 0)
+            {
+                _activeLayer.Strokes.Clear();
+                foreach (var stroke in _inkCanvas.Strokes)
+                {
+                    _activeLayer.Strokes.Add(stroke);
+                }
+            }
+            
             _activeLayer = layer;
+            
+            // Load strokes from new active layer
+            _inkCanvas.Strokes.Clear();
+            if (layer.Strokes != null)
+            {
+                foreach (var stroke in layer.Strokes)
+                {
+                    _inkCanvas.Strokes.Add(stroke);
+                }
+            }
         }
+
+        public Layer GetActiveLayer() => _activeLayer;
 
         public void AddMathObject(MathObject mathObject)
         {
@@ -125,6 +147,7 @@ namespace HermitePad.Core
             _bezierPaths.Clear();
             foreach (var layer in _layers)
             {
+                layer.Strokes.Clear();
                 layer.MathObjects.Clear();
                 layer.BezierPaths.Clear();
             }
@@ -135,6 +158,7 @@ namespace HermitePad.Core
     {
         public string Name { get; set; }
         public bool IsVisible { get; set; }
+        public System.Windows.Ink.StrokeCollection Strokes { get; set; }
         public List<MathObject> MathObjects { get; set; }
         public List<BezierPath> BezierPaths { get; set; }
 
@@ -142,6 +166,7 @@ namespace HermitePad.Core
         {
             Name = name;
             IsVisible = true;
+            Strokes = new System.Windows.Ink.StrokeCollection();
             MathObjects = new List<MathObject>();
             BezierPaths = new List<BezierPath>();
         }

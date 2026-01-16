@@ -72,14 +72,8 @@ namespace HermitePad
             // Keyboard shortcuts
             this.KeyDown += OnKeyDown;
             
-            // Canvas expansion
-            MainInkCanvas.StylusDown += OnCanvasInteraction;
-            MainInkCanvas.MouseDown += OnCanvasInteraction;
-        }
-
-        private void OnCanvasInteraction(object sender, EventArgs e)
-        {
-            ExpandCanvasIfNeeded();
+            // Canvas expansion - check on stroke collection for better performance
+            MainInkCanvas.StrokeCollected += (s, e) => ExpandCanvasIfNeeded();
         }
 
         private void ExpandCanvasIfNeeded()
@@ -90,9 +84,9 @@ namespace HermitePad
                 var bounds = MainInkCanvas.Strokes.GetBounds();
                 
                 // Add padding
-                double padding = 200;
-                double requiredWidth = bounds.Right + padding;
-                double requiredHeight = bounds.Bottom + padding;
+                double padding = 300;
+                double requiredWidth = Math.Max(bounds.Right + padding, 1200);
+                double requiredHeight = Math.Max(bounds.Bottom + padding, 800);
                 
                 // Expand if needed
                 if (requiredWidth > MainInkCanvas.Width)
@@ -187,16 +181,79 @@ namespace HermitePad
         {
             if (_currentTool == ToolMode.Bezier && _bezierTool != null)
             {
-                // Finish the current path
+                // Finish the current path and convert to actual ink stroke
                 var path = _bezierTool.GetCurrentPath();
                 if (path != null && path.Nodes.Count > 1)
                 {
+                    // Create stroke from Bezier path
+                    var stroke = CreateStrokeFromBezierPath(path);
+                    if (stroke != null)
+                    {
+                        MainInkCanvas.Strokes.Add(stroke);
+                        _undoRedoManager.AddAction(new AddStrokeAction(MainInkCanvas, stroke));
+                    }
+                    
                     _canvasManager.AddBezierPath(path);
                     StatusText.Text = $"Bezier path completed with {path.Nodes.Count} points";
                 }
                 _bezierTool.FinishPath();
                 e.Handled = true;
             }
+        }
+
+        private System.Windows.Ink.Stroke? CreateStrokeFromBezierPath(BezierPath path)
+        {
+            if (path.Nodes.Count < 2)
+                return null;
+
+            var points = new System.Windows.Input.StylusPointCollection();
+            
+            // Sample points along the Bezier curves
+            for (int i = 0; i < path.Nodes.Count; i++)
+            {
+                var node = path.Nodes[i];
+                points.Add(new System.Windows.Input.StylusPoint(node.Position.X, node.Position.Y));
+                
+                // Add interpolated points between nodes for smooth curves
+                if (i < path.Nodes.Count - 1)
+                {
+                    var nextNode = path.Nodes[i + 1];
+                    
+                    if (node.ControlPoint2.HasValue && nextNode.ControlPoint1.HasValue)
+                    {
+                        // Sample along the Bezier curve
+                        for (double t = 0.1; t < 1.0; t += 0.1)
+                        {
+                            var point = CalculateBezierPoint(
+                                node.Position,
+                                node.ControlPoint2.Value,
+                                nextNode.ControlPoint1.Value,
+                                nextNode.Position,
+                                t);
+                            points.Add(new System.Windows.Input.StylusPoint(point.X, point.Y));
+                        }
+                    }
+                }
+            }
+
+            var stroke = new System.Windows.Ink.Stroke(points);
+            stroke.DrawingAttributes = MainInkCanvas.DefaultDrawingAttributes.Clone();
+            return stroke;
+        }
+
+        private Point CalculateBezierPoint(Point p0, Point p1, Point p2, Point p3, double t)
+        {
+            // Cubic Bezier formula: B(t) = (1-t)³P0 + 3(1-t)²tP1 + 3(1-t)t²P2 + t³P3
+            double u = 1 - t;
+            double tt = t * t;
+            double uu = u * u;
+            double uuu = uu * u;
+            double ttt = tt * t;
+
+            double x = uuu * p0.X + 3 * uu * t * p1.X + 3 * u * tt * p2.X + ttt * p3.X;
+            double y = uuu * p0.Y + 3 * uu * t * p1.Y + 3 * u * tt * p2.Y + ttt * p3.Y;
+
+            return new Point(x, y);
         }
 
         private void OnKeyDown(object sender, KeyEventArgs e)
