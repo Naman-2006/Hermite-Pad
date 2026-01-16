@@ -63,6 +63,7 @@ namespace HermitePad
             MainInkCanvas.MouseMove += OnMouseMove;
             MainInkCanvas.MouseLeftButtonDown += OnMouseLeftButtonDown;
             MainInkCanvas.MouseLeftButtonUp += OnMouseLeftButtonUp;
+            MainInkCanvas.MouseRightButtonDown += OnMouseRightButtonDown;
             
             // Keyboard shortcuts
             this.KeyDown += OnKeyDown;
@@ -144,6 +145,22 @@ namespace HermitePad
             }
         }
 
+        private void OnMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (_currentTool == ToolMode.Bezier && _bezierTool != null)
+            {
+                // Finish the current path
+                var path = _bezierTool.GetCurrentPath();
+                if (path != null && path.Nodes.Count > 1)
+                {
+                    _canvasManager.AddBezierPath(path);
+                    StatusText.Text = $"Bezier path completed with {path.Nodes.Count} points";
+                }
+                _bezierTool.FinishPath();
+                e.Handled = true;
+            }
+        }
+
         private void OnKeyDown(object sender, KeyEventArgs e)
         {
             if (Keyboard.Modifiers == ModifierKeys.Control)
@@ -184,6 +201,13 @@ namespace HermitePad
             LassoButton.FontWeight = FontWeights.Normal;
             BezierButton.FontWeight = FontWeights.Normal;
             
+            // Clean up previous tool
+            if (_currentTool != ToolMode.Bezier && _bezierTool != null)
+            {
+                _bezierTool.ClearVisuals();
+                _bezierTool = null;
+            }
+            
             // Highlight current tool
             switch (_currentTool)
             {
@@ -193,7 +217,8 @@ namespace HermitePad
                     break;
                 case ToolMode.Eraser:
                     EraserButton.FontWeight = FontWeights.Bold;
-                    MainInkCanvas.EditingMode = InkCanvasEditingMode.EraseByStroke;
+                    MainInkCanvas.EditingMode = InkCanvasEditingMode.EraseByPoint;
+                    MainInkCanvas.EraserShape = new EllipseStylusShape(10, 10);
                     break;
                 case ToolMode.Lasso:
                     LassoButton.FontWeight = FontWeights.Bold;
@@ -203,6 +228,7 @@ namespace HermitePad
                     BezierButton.FontWeight = FontWeights.Bold;
                     MainInkCanvas.EditingMode = InkCanvasEditingMode.None;
                     _bezierTool = new BezierTool(MainInkCanvas);
+                    StatusText.Text = "Bezier: Click to add points, Right-click to finish";
                     break;
             }
             
@@ -402,6 +428,44 @@ namespace HermitePad
             {
                 _canvasManager.RemoveLayer(layer);
                 LayersList.Items.Remove(layer);
+            }
+        }
+
+        private void ColorButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string colorName)
+            {
+                Color color = colorName switch
+                {
+                    "Black" => Colors.Black,
+                    "Red" => Colors.Red,
+                    "Blue" => Colors.Blue,
+                    "Green" => Colors.Green,
+                    "Yellow" => Colors.Gold,
+                    "Orange" => Colors.Orange,
+                    "Purple" => Colors.Purple,
+                    _ => Colors.Black
+                };
+
+                MainInkCanvas.DefaultDrawingAttributes.Color = color;
+                StatusText.Text = $"Color: {colorName}";
+            }
+        }
+
+        private void BrushSizeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (MainInkCanvas != null && BrushSizeText != null)
+            {
+                double size = Math.Round(e.NewValue);
+                MainInkCanvas.DefaultDrawingAttributes.Width = size;
+                MainInkCanvas.DefaultDrawingAttributes.Height = size;
+                BrushSizeText.Text = size.ToString();
+                
+                // Update eraser size if in eraser mode
+                if (_currentTool == ToolMode.Eraser)
+                {
+                    MainInkCanvas.EraserShape = new EllipseStylusShape(size * 5, size * 5);
+                }
             }
         }
     }

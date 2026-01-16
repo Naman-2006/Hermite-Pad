@@ -40,6 +40,26 @@
                     
                     <Separator Style="{StaticResource VerticalSeparatorStyle}" Margin="10,0"/>
                     
+                    <!-- Color Picker -->
+                    <TextBlock Text="Color:" VerticalAlignment="Center" Margin="5,0" Foreground="#34495E"/>
+                    <Button x:Name="ColorBlack" Content="⚫" Width="30" Height="30" Margin="2,0" Click="ColorButton_Click" Tag="Black" Style="{StaticResource ToolbarButtonStyle}"/>
+                    <Button x:Name="ColorRed" Content="🔴" Width="30" Height="30" Margin="2,0" Click="ColorButton_Click" Tag="Red" Style="{StaticResource ToolbarButtonStyle}"/>
+                    <Button x:Name="ColorBlue" Content="🔵" Width="30" Height="30" Margin="2,0" Click="ColorButton_Click" Tag="Blue" Style="{StaticResource ToolbarButtonStyle}"/>
+                    <Button x:Name="ColorGreen" Content="🟢" Width="30" Height="30" Margin="2,0" Click="ColorButton_Click" Tag="Green" Style="{StaticResource ToolbarButtonStyle}"/>
+                    <Button x:Name="ColorYellow" Content="🟡" Width="30" Height="30" Margin="2,0" Click="ColorButton_Click" Tag="Yellow" Style="{StaticResource ToolbarButtonStyle}"/>
+                    <Button x:Name="ColorOrange" Content="🟠" Width="30" Height="30" Margin="2,0" Click="ColorButton_Click" Tag="Orange" Style="{StaticResource ToolbarButtonStyle}"/>
+                    <Button x:Name="ColorPurple" Content="🟣" Width="30" Height="30" Margin="2,0" Click="ColorButton_Click" Tag="Purple" Style="{StaticResource ToolbarButtonStyle}"/>
+                    
+                    <Separator Style="{StaticResource VerticalSeparatorStyle}" Margin="10,0"/>
+                    
+                    <!-- Brush Size -->
+                    <TextBlock Text="Size:" VerticalAlignment="Center" Margin="5,0" Foreground="#34495E"/>
+                    <Slider x:Name="BrushSizeSlider" Width="100" Minimum="1" Maximum="20" Value="2" 
+                            VerticalAlignment="Center" ValueChanged="BrushSizeSlider_ValueChanged"/>
+                    <TextBlock x:Name="BrushSizeText" Text="2" Width="20" VerticalAlignment="Center" Margin="5,0" Foreground="#34495E"/>
+                    
+                    <Separator Style="{StaticResource VerticalSeparatorStyle}" Margin="10,0"/>
+                    
                     <!-- Math Conversion -->
                     <Button x:Name="ConvertToMathButton" Content="🔢 Convert to Math" Padding="10,5" Margin="5,0" Click="ConvertToMathButton_Click" Style="{StaticResource ToolbarButtonStyle}"/>
                     

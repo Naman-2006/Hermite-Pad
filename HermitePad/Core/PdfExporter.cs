@@ -52,24 +52,6 @@ namespace HermitePad.Core
                     gfx.DrawImage(image, 0, 0, page.Width, page.Height);
                 }
 
-                // Add text overlay for math objects
-                var mathObjects = canvasManager.GetMathObjects();
-                XFont font = new XFont("Arial", 12);
-                XBrush brush = XBrushes.Blue;
-
-                foreach (var mathObj in mathObjects)
-                {
-                    if (!string.IsNullOrEmpty(mathObj.LaTeX))
-                    {
-                        gfx.DrawString(
-                            mathObj.LaTeX,
-                            font,
-                            brush,
-                            mathObj.Position.X,
-                            mathObj.Position.Y);
-                    }
-                }
-
                 // Save the document
                 document.Save(filePath);
             }
