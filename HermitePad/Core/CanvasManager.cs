@@ -14,8 +14,8 @@ namespace HermitePad.Core
         private Layer _activeLayer;
         private readonly List<MathObject> _mathObjects;
         private readonly List<BezierPath> _bezierPaths;
-        private ScaleTransform _scaleTransform;
-        private TranslateTransform _translateTransform;
+        private ScaleTransform _scaleTransform = null!;
+        private TranslateTransform _translateTransform = null!;
 
         public CanvasManager(InkCanvas inkCanvas)
         {

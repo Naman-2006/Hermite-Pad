@@ -78,7 +78,7 @@ namespace HermitePad
             _undoRedoManager.AddAction(new RemoveStrokeAction(MainInkCanvas, e.Stroke));
         }
 
-        private void OnSelectionChanged(object sender, EventArgs e)
+        private void OnSelectionChanged(object? sender, EventArgs e)
         {
             if (_currentTool == ToolMode.Lasso && MainInkCanvas.GetSelectedStrokes().Count > 0)
             {
@@ -102,7 +102,7 @@ namespace HermitePad
 
         private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (Keyboard.Modifiers == ModifierKeys.Space || _currentTool == ToolMode.Pan)
+            if (_currentTool == ToolMode.Pan)
             {
                 _isPanning = true;
                 _lastPanPoint = e.GetPosition(this);

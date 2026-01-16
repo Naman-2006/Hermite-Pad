@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Ink;
+using System.Windows.Input;
 using HermitePad.Core;
 
 namespace HermitePad.Tools

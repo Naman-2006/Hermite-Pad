@@ -23,25 +23,29 @@ namespace HermitePad.Core
                 using (var fs = new FileStream(filePath, FileMode.Create))
                 {
                     // Save strokes using ISF format
-                    var strokeBytes = document.Strokes.Save();
-                    var strokeLength = strokeBytes.Length;
-                    
-                    using (var writer = new BinaryWriter(fs))
+                    using (var strokeStream = new MemoryStream())
                     {
-                        // Write version
-                        writer.Write(1); // Version number
+                        document.Strokes.Save(strokeStream);
+                        var strokeBytes = strokeStream.ToArray();
+                        var strokeLength = strokeBytes.Length;
                         
-                        // Write strokes
-                        writer.Write(strokeLength);
-                        writer.Write(strokeBytes);
-                        
-                        // Write math objects as JSON
-                        var mathJson = JsonSerializer.Serialize(document.MathObjects);
-                        writer.Write(mathJson);
-                        
-                        // Write bezier paths as JSON
-                        var bezierJson = JsonSerializer.Serialize(document.BezierPaths);
-                        writer.Write(bezierJson);
+                        using (var writer = new BinaryWriter(fs))
+                        {
+                            // Write version
+                            writer.Write(1); // Version number
+                            
+                            // Write strokes
+                            writer.Write(strokeLength);
+                            writer.Write(strokeBytes);
+                            
+                            // Write math objects as JSON
+                            var mathJson = JsonSerializer.Serialize(document.MathObjects);
+                            writer.Write(mathJson);
+                            
+                            // Write bezier paths as JSON
+                            var bezierJson = JsonSerializer.Serialize(document.BezierPaths);
+                            writer.Write(bezierJson);
+                        }
                     }
                 }
             }
