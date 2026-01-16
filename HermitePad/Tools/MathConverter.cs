@@ -41,8 +41,10 @@ namespace HermitePad.Tools
                     Height = bounds.Height
                 };
             }
-            catch
+            catch (Exception ex)
             {
+                // Log the error for debugging
+                System.Diagnostics.Debug.WriteLine($"Math conversion failed: {ex.Message}");
                 return null;
             }
         }

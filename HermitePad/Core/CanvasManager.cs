@@ -14,8 +14,8 @@ namespace HermitePad.Core
         private Layer _activeLayer;
         private readonly List<MathObject> _mathObjects;
         private readonly List<BezierPath> _bezierPaths;
-        private ScaleTransform _scaleTransform = null!;
-        private TranslateTransform _translateTransform = null!;
+        private ScaleTransform? _scaleTransform;
+        private TranslateTransform? _translateTransform;
 
         public CanvasManager(InkCanvas inkCanvas)
         {
@@ -42,6 +42,9 @@ namespace HermitePad.Core
 
         public void Zoom(double factor, Point center)
         {
+            if (_scaleTransform == null || _translateTransform == null)
+                return;
+                
             double newScaleX = _scaleTransform.ScaleX * factor;
             double newScaleY = _scaleTransform.ScaleY * factor;
             
@@ -58,8 +61,11 @@ namespace HermitePad.Core
 
         public void Pan(Vector delta)
         {
-            _translateTransform.X += delta.X;
-            _translateTransform.Y += delta.Y;
+            if (_translateTransform != null)
+            {
+                _translateTransform.X += delta.X;
+                _translateTransform.Y += delta.Y;
+            }
         }
 
         public Layer AddLayer()
