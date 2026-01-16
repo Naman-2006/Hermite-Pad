@@ -19,6 +19,7 @@ namespace HermitePad
         private ToolMode _currentTool = ToolMode.Ink;
         private BezierTool? _bezierTool;
         private LassoTool? _lassoTool;
+        private FillTool? _fillTool;
         
         public MainWindow()
         {
@@ -145,6 +146,14 @@ namespace HermitePad
             else if (_currentTool == ToolMode.Bezier)
             {
                 _bezierTool?.OnMouseDown(e.GetPosition(MainInkCanvas));
+                e.Handled = true;
+            }
+            else if (_currentTool == ToolMode.Fill)
+            {
+                Point clickPoint = e.GetPosition(MainInkCanvas);
+                Color fillColor = MainInkCanvas.DefaultDrawingAttributes.Color;
+                _fillTool?.Fill(clickPoint, fillColor);
+                StatusText.Text = $"Fill applied at ({(int)clickPoint.X}, {(int)clickPoint.Y})";
                 e.Handled = true;
             }
         }
@@ -295,6 +304,7 @@ namespace HermitePad
             EraserButton.FontWeight = FontWeights.Normal;
             LassoButton.FontWeight = FontWeights.Normal;
             BezierButton.FontWeight = FontWeights.Normal;
+            FillButton.FontWeight = FontWeights.Normal;
             
             // Clean up previous tool
             if (_currentTool != ToolMode.Bezier && _bezierTool != null)
@@ -325,6 +335,12 @@ namespace HermitePad
                     _bezierTool = new BezierTool(MainInkCanvas);
                     StatusText.Text = "Bezier: Click and drag to create curves, Right-click to finish";
                     break;
+                case ToolMode.Fill:
+                    FillButton.FontWeight = FontWeights.Bold;
+                    MainInkCanvas.EditingMode = InkCanvasEditingMode.None;
+                    _fillTool = new FillTool(MainInkCanvas);
+                    StatusText.Text = "Fill: Click on an area to fill with current color";
+                    break;
             }
             
             ToolStatusText.Text = $"Tool: {_currentTool}";
@@ -353,6 +369,12 @@ namespace HermitePad
         private void BezierButton_Click(object sender, RoutedEventArgs e)
         {
             _currentTool = ToolMode.Bezier;
+            UpdateToolUI();
+        }
+
+        private void FillButton_Click(object sender, RoutedEventArgs e)
+        {
+            _currentTool = ToolMode.Fill;
             UpdateToolUI();
         }
 
@@ -571,6 +593,7 @@ namespace HermitePad
         Eraser,
         Lasso,
         Bezier,
+        Fill,
         Pan
     }
 }

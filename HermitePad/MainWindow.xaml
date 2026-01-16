@@ -37,6 +37,7 @@
                     <Button x:Name="EraserButton" Content="🧹 Eraser" Padding="10,5" Margin="5,0" Click="EraserButton_Click" Style="{StaticResource ToolbarButtonStyle}"/>
                     <Button x:Name="LassoButton" Content="⭕ Lasso" Padding="10,5" Margin="5,0" Click="LassoButton_Click" Style="{StaticResource ToolbarButtonStyle}"/>
                     <Button x:Name="BezierButton" Content="📐 Bezier" Padding="10,5" Margin="5,0" Click="BezierButton_Click" Style="{StaticResource ToolbarButtonStyle}"/>
+                    <Button x:Name="FillButton" Content="🪣 Fill" Padding="10,5" Margin="5,0" Click="FillButton_Click" Style="{StaticResource ToolbarButtonStyle}"/>
                     
                     <Separator Style="{StaticResource VerticalSeparatorStyle}" Margin="10,0"/>
                     
